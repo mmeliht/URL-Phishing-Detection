@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "URL Phishing Protection",
+  "version": "1.0.0",
+  "description": "Ziyaret ettiğin siteleri yerel makine öğrenmesi modeliyle kontrol eder ve zararlı (phishing) siteler için uyarı gösterir.",
+  "permissions": [
+    "tabs",
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1:5000/*",
+    "http://localhost:5000/*",
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
