@@ -58,7 +58,7 @@ function isSearchResultPage(urlObj) {
 function shouldCheckUrl(rawUrl) {
   if (!rawUrl || typeof rawUrl !== "string") return false;
 
-  // Tarayici-ici sayfalari direkt ele
+  // Tarayici ici sayfalari direkt eler
   if (NON_HTTP_PREFIXES.some((prefix) => rawUrl.startsWith(prefix))) {
     return false;
   }
