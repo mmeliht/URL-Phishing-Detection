@@ -26,6 +26,7 @@ model = joblib.load(MODEL_PATH)
 
 LABEL_MAP = {1: "Phishing", 0: "Legitimate"}
 
+
 MODEL_BEKLENEN_SIRA = [
     'Domain_URL_Ratio', 'Count_www', 'Count_/', 'Path_Length', 'URL/Path',
     'Character_Repetition', 'Having_Path', 'Special_Char_Alphabet_Ratio',
@@ -38,9 +39,11 @@ MODEL_BEKLENEN_SIRA = [
     'Longest_Word', 'Count_?', 'Query_Length', 'Count_&', 'Count_;'
 ]
 
+
 def _clean_url(x):
     x = str(x)
     return x if "://" in x else "http://" + x
+
 
 def extract_features(url):
     df = pd.DataFrame([url], columns=['URL'])
@@ -204,3 +207,63 @@ def extract_features(url):
     features_df = features_df[MODEL_BEKLENEN_SIRA]
 
     return features_df
+
+
+@app.route('/predict', methods=['POST'])
+def predict():
+    try:
+        data = request.get_json(force=True, silent=True) or {}
+        url = data.get('url')
+
+        if not url or not isinstance(url, str):
+            return jsonify({'error': 'Gecerli bir url alani gerekli'}), 400
+
+        # URL normalizasyonu (veri seti bias duzeltmesi):
+        # 1) www. yoksa ekle
+        # 2) path sadece / ise kaldir (trailing slash)
+        parsed_url = urlparse(_clean_url(url))
+        netloc = parsed_url.netloc
+        if netloc and not netloc.startswith("www."):
+            url = url.replace(netloc, "www." + netloc, 1)
+        # Sadece / olan path'i kaldir: https://www.site.com/ -> https://www.site.com
+        if url.endswith("/") and url.count("/") == 3:
+            url = url.rstrip("/")
+
+        print(f"Gelen URL: {url}")
+
+        features_df = extract_features(url)
+
+        proba = model.predict_proba(features_df)[0]
+        phishing_prob = float(proba[1])
+        legitimate_prob = float(proba[0])
+        prediction = int(model.predict(features_df)[0])
+        label = LABEL_MAP.get(prediction, "Unknown")
+
+        result = {
+            'prediction': prediction,
+            'label': label,
+            'probability': {
+                'legitimate': legitimate_prob,
+                'phishing': phishing_prob,
+            }
+        }
+
+        print(f"Tahmin Sonucu: {label} ({prediction})")
+        return jsonify(result)
+
+    except Exception as e:
+        print("\n" + "=" * 50)
+        print("HATA DETAYI:")
+        print(traceback.format_exc())
+        print("=" * 50 + "\n")
+        return jsonify({'error': str(e)}), 500
+    
+    
+@app.route('/health', methods=['GET'])
+def health():
+    return jsonify({'status': 'ok'})
+
+
+if __name__ == '__main__':
+    print("Flask Sunucusu Baslatildi! Eklenti artik veri gonderebilir.")
+    app.run(debug=True, port=5000)
