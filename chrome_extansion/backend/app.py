@@ -20,7 +20,7 @@ import traceback
 app = Flask(__name__)
 CORS(app)
 
-MODEL_PATH = "C:/Users/USER/Desktop/URL-Phishing-Detection/model_development/models/XGBoost.joblib"
+MODEL_PATH = "/Users/mmeliht/Desktop/URL-Phishing-Detection/model_development/models/XGBoost.joblib"
 
 model = joblib.load(MODEL_PATH)
 
